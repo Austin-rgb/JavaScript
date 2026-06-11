@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOM & Browser JS · Part 03</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ══════════════════════════════════════════════
+       TOKENS
+    ══════════════════════════════════════════════ */
+    :root {
+      --bg:        #0d0f12;
+      --surface:   #141720;
+      --surface2:  #1a1f2e;
+      --surface3:  #0f1218;
+      --border:    #1e2330;
+      --border2:   #2a3045;
+      --accent:    #4fffb0;
+      --accent2:   #3b82f6;
+      --accent3:   #a78bfa;
+      --accent4:   #f97316;  /* events — orange */
+      --warn:      #facc15;
+      --danger:    #f87171;
+      --teal:      #2dd4bf;
+      --text:      #d4dae8;
+      --muted:     #5a6378;
+      --heading:   #f0f4ff;
+
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+      --radius: 6px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.75;
+    }
+
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+    /* ══════════════════════════════════════════════
+       BREADCRUMB
+    ══════════════════════════════════════════════ */
+    .breadcrumb {
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+    }
+    .breadcrumb-inner {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .08em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .breadcrumb-inner span { color: var(--accent); }
+
+    /* ══════════════════════════════════════════════
+       HERO
+    ══════════════════════════════════════════════ */
+    .hero {
+      padding: 56px 0 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .hero h1 {
+      font-family: var(--mono);
+      font-size: clamp(24px, 4.5vw, 40px);
+      font-weight: 600;
+      color: var(--heading);
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .hero h1 em { font-style: normal; color: var(--teal); }
+
+    .hero-sub {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 580px;
+      margin-bottom: 40px;
+    }
+
+    /* ── Signature: DOM Split-Pane ── */
+    .dom-pane {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border: 1px solid var(--border2);
+      border-radius: 8px 8px 0 0;
+      overflow: hidden;
+    }
+
+    .pane-code, .pane-preview {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pane-bar {
+      display: flex;
+      align-items: center;
+      padding: 9px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+    }
+
+    .pane-bar-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pane-code .pane-bar { border-right: 1px solid var(--border); }
+
+    .hero-run-btn {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      border-radius: 4px;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .hero-run-btn:hover { opacity: .82; }
+
+    .pane-editor {
+      flex: 1;
+      width: 100%;
+      min-height: 200px;
+      background: var(--surface3);
+      border: none;
+      border-right: 1px solid var(--border);
+      outline: none;
+      resize: none;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--accent);
+      padding: 16px 18px;
+      line-height: 1.7;
+      caret-color: var(--accent);
+    }
+
+    .pane-preview-frame {
+      flex: 1;
+      background: #fff;
+      min-height: 200px;
+      position: relative;
+    }
+
+    .pane-preview-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .hero-caption {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      padding: 10px 0 44px;
+      text-align: center;
+    }
+
+    /* ── Topic nav ── */
+    .topic-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .topic-nav a {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .05em;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 12px;
+      transition: border-color .2s, color .2s;
+    }
+    .topic-nav a:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+      text-decoration: none;
+    }
+
+    /* ══════════════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════════════ */
+    main { padding: 52px 0 80px; }
+
+    /* ── Topic section ── */
+    .topic { margin-bottom: 68px; }
+
+    .topic-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 22px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topic-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .tag-dom    { color: var(--bg); background: var(--teal); }
+    .tag-sel    { color: var(--bg); background: var(--accent); }
+    .tag-manip  { color: var(--bg); background: var(--accent2); }
+    .tag-events { color: var(--bg); background: var(--accent4); }
+    .tag-forms  { color: var(--bg); background: var(--accent3); }
+    .tag-style  { color: var(--bg); background: #ec4899; }
+    .tag-async  { color: var(--bg); background: var(--warn); }
+    .tag-storage{ color: var(--bg); background: #10b981; }
+
+    .topic-header h2 {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--heading);
+    }
+
+    .topic p { margin-bottom: 14px; }
+    .topic p:last-of-type { margin-bottom: 0; }
+
+    /* ── Inline code ── */
+    code {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--accent);
+      background: rgba(78,255,176,.07);
+      border-radius: 3px;
+      padding: 1px 6px;
+    }
+
+    /* ── Code block ── */
+    .cb {
+      background: var(--surface3);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--teal);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin: 14px 0;
+      overflow-x: auto;
+    }
+    .cb.green  { border-left-color: var(--accent); }
+    .cb.blue   { border-left-color: var(--accent2); }
+    .cb.purple { border-left-color: var(--accent3); }
+    .cb.orange { border-left-color: var(--accent4); }
+    .cb.pink   { border-left-color: #ec4899; }
+    .cb.yellow { border-left-color: var(--warn); }
+    .cb.emerald{ border-left-color: #10b981; }
+
+    .cb pre {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.7;
+      white-space: pre;
+      margin: 0;
+    }
+
+    /* syntax */
+    .kw  { color: var(--accent3); }
+    .fn  { color: var(--accent4); }
+    .str { color: var(--warn); }
+    .num { color: var(--accent2); }
+    .cm  { color: var(--muted); font-style: italic; }
+    .acc { color: var(--accent); }
+    .tl  { color: var(--teal); }
+    .err { color: var(--danger); }
+    .tag-hl { color: #f472b6; }
+    .attr-hl{ color: var(--accent2); }
+
+    /* ══════════════════════════════════════════════
+       LIVE SANDBOX (split pane per section)
+    ══════════════════════════════════════════════ */
+    .sandbox {
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    .sandbox-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+
+    .sandbox-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .sandbox-tabs {
+      display: flex;
+      margin-left: auto;
+      gap: 0;
+    }
+    .stab {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 4px 12px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .stab:first-child { border-radius: 4px 0 0 4px; }
+    .stab:last-child  { border-radius: 0 4px 4px 0; border-left: none; }
+    .stab.active      { background: var(--teal); color: var(--bg); border-color: var(--teal); }
+
+    .sandbox-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .sb-code-wrap {
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+
+    .sb-html-editor, .sb-js-editor {
+      width: 100%;
+      background: var(--surface3);
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      padding: 14px 16px;
+      caret-color: var(--accent);
+      display: block;
+    }
+    .sb-html-editor { color: #f472b6; min-height: 80px; }
+    .sb-js-editor   { color: var(--accent); min-height: 100px; border-top: 1px solid var(--border); }
+
+    .sb-run-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--teal);
+      border: none;
+      border-radius: 4px;
+      padding: 5px 14px;
+      cursor: pointer;
+      letter-spacing: .04em;
+      transition: opacity .15s;
+    }
+    .sb-run-btn:hover { opacity: .8; }
+
+    .sb-preview {
+      background: #fff;
+      min-height: 200px;
+      position: relative;
+    }
+    .sb-preview iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 200px;
+      border: none;
+      display: block;
+    }
+
+    /* ── Single-pane console sandbox (no HTML) ── */
+    .sandbox.console-only .sandbox-body {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .sb-console {
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      min-height: 130px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--text);
+      overflow-y: auto;
+    }
+    .sb-console .cout  { display: block; }
+    .sb-console .cerr  { color: var(--danger); }
+    .sb-console .cinfo { color: var(--teal); font-style: italic; }
+
+    /* ══════════════════════════════════════════════
+       CALLOUT BOXES
+    ══════════════════════════════════════════════ */
+    .tip, .warn-box, .concept-box, .info-box {
+      display: flex;
+      gap: 12px;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .tip         { background: rgba(45,212,191,.05);  border: 1px solid rgba(45,212,191,.2); }
+    .warn-box    { background: rgba(250,204,21,.05);  border: 1px solid rgba(250,204,21,.2); }
+    .concept-box { background: rgba(167,139,250,.06); border: 1px solid rgba(167,139,250,.2); }
+    .info-box    { background: rgba(59,130,246,.05);  border: 1px solid rgba(59,130,246,.2); }
+
+    .tip p, .warn-box p, .concept-box p, .info-box p { margin: 0; color: var(--text); }
+    .box-icon { flex-shrink: 0; font-size: 15px; margin-top: 2px; }
+
+    /* ══════════════════════════════════════════════
+       TABLE
+    ══════════════════════════════════════════════ */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+    .data-table th {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border2);
+    }
+    .data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ══════════════════════════════════════════════
+       DOM TREE DIAGRAM
+    ══════════════════════════════════════════════ */
+    .tree-diagram {
+      background: var(--surface3);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--teal);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin: 14px 0;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 2;
+      color: var(--muted);
+    }
+    .tree-diagram .node-el   { color: #f472b6; }
+    .tree-diagram .node-text { color: var(--warn); }
+    .tree-diagram .node-attr { color: var(--accent2); }
+    .tree-diagram .tree-line { color: var(--border2); }
+
+    /* ══════════════════════════════════════════════
+       FINALE
+    ══════════════════════════════════════════════ */
+    .finale {
+      border-top: 1px solid var(--border);
+      padding-top: 48px;
+      text-align: center;
+    }
+    .finale h2 {
+      font-family: var(--mono);
+      font-size: 22px;
+      color: var(--heading);
+      margin-bottom: 12px;
+    }
+    .finale p { color: var(--muted); max-width: 500px; margin: 0 auto 24px; }
+
+    .next-links { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .next-link {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent2);
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 8px 18px;
+      transition: border-color .2s;
+    }
+    .next-link:hover { border-color: var(--accent2); text-decoration: none; }
+
+    /* ══════════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      .dom-pane          { grid-template-columns: 1fr; }
+      .pane-code .pane-bar { border-right: none; }
+      .pane-editor       { border-right: none; border-bottom: 1px solid var(--border); }
+      .sandbox-body      { grid-template-columns: 1fr; }
+      .sb-code-wrap      { border-right: none; border-bottom: 1px solid var(--border); }
+      .sb-preview        { min-height: 160px; }
+      .topic-header      { flex-direction: column; align-items: flex-start; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Breadcrumb ── -->
+<div class="breadcrumb">
+  <div class="wrap">
+    <div class="breadcrumb-inner">
+      JS Dev Series &nbsp;/&nbsp; <span>Part 03 — DOM &amp; Browser JS</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">// absolute beginner · windows</div>
+    <h1>The DOM &amp;<br><em>Browser JavaScript</em></h1>
+    <p class="hero-sub">JavaScript's superpower in the browser: reading, changing, and responding to everything on the page. Edit the code on the left — the page on the right updates live.</p>
+
+    <!-- Signature: split-pane DOM sandbox -->
+    <div class="dom-pane">
+      <div class="pane-code">
+        <div class="pane-bar">
+          <span class="pane-bar-label">script.js</span>
+          <button class="hero-run-btn" onclick="runHero()">▶ Run</button>
+        </div>
+        <textarea id="hero-editor" class="pane-editor" spellcheck="false">// JavaScript can reach into the page and change anything.
+// Edit this code and press Run to see the result →
+
+const heading = document.getElementById('hero-title');
+const box     = document.getElementById('hero-box');
+const list    = document.getElementById('hero-list');
+
+// Change text
+heading.textContent = 'Hello from JavaScript!';
+
+// Change styles
+heading.style.color = '#4fffb0';
+box.style.background = '#0d0f12';
+box.style.borderColor = '#4fffb0';
+
+// Add list items dynamically
+const items = ['Read', 'Modify', 'Create', 'Delete'];
+items.forEach(text => {
+  const li = document.createElement('li');
+  li.textContent = '→ ' + text + ' HTML elements';
+  list.appendChild(li);
+});</textarea>
+      </div>
+      <div class="pane-preview">
+        <div class="pane-bar">
+          <span class="pane-bar-label">preview</span>
+        </div>
+        <div class="pane-preview-frame">
+          <iframe id="hero-frame" title="DOM preview"></iframe>
+        </div>
+      </div>
+    </div>
+    <p class="hero-caption">// every sandbox in this guide has a live HTML preview — Shift+Enter to run</p>
+
+    <nav class="topic-nav" aria-label="Topics">
+      <a href="#what-is-dom">What is the DOM?</a>
+      <a href="#selecting">Selecting elements</a>
+      <a href="#manipulating">Manipulating elements</a>
+      <a href="#events">Events</a>
+      <a href="#forms">Forms &amp; input</a>
+      <a href="#styling">Dynamic styling</a>
+      <a href="#storage">localStorage</a>
+      <a href="#project">Mini project</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════════ -->
+<main>
+<div class="wrap">
+
+<!-- ─── 1. What is the DOM ──────────────────────────────── -->
+<section class="topic" id="what-is-dom">
+  <div class="topic-header">
+    <span class="topic-tag tag-dom">DOM</span>
+    <h2>What is the DOM?</h2>
+  </div>
+
+  <p>When a browser loads an HTML page, it turns the markup into a tree of objects in memory. This tree is called the <strong>Document Object Model</strong> — the DOM. JavaScript can read this tree, change it, add to it, and delete from it. Every change shows up immediately on the page.</p>
+
+  <div class="tree-diagram">
+    <span class="tree-line">document</span><br>
+    <span class="tree-line">└─ </span><span class="node-el">&lt;html&gt;</span><br>
+    <span class="tree-line">   ├─ </span><span class="node-el">&lt;head&gt;</span><br>
+    <span class="tree-line">   │  └─ </span><span class="node-el">&lt;title&gt;</span><span class="node-text"> "My Page" </span><span class="node-el">&lt;/title&gt;</span><br>
+    <span class="tree-line">   └─ </span><span class="node-el">&lt;body&gt;</span><br>
+    <span class="tree-line">      ├─ </span><span class="node-el">&lt;h1 </span><span class="node-attr">id="title"</span><span class="node-el">&gt;</span><span class="node-text"> "Hello" </span><span class="node-el">&lt;/h1&gt;</span><br>
+    <span class="tree-line">      └─ </span><span class="node-el">&lt;p </span><span class="node-attr">class="intro"</span><span class="node-el">&gt;</span><span class="node-text"> "Welcome" </span><span class="node-el">&lt;/p&gt;</span>
+  </div>
+
+  <p>Every box in that tree is a <strong>node</strong>. Element nodes (<code>&lt;h1&gt;</code>, <code>&lt;p&gt;</code>) are the most common ones you'll work with. The entry point to the whole tree is <code>document</code> — a global object that's always available in any script running in the browser.</p>
+
+  <div class="concept-box">
+    <span class="box-icon">🧠</span>
+    <p><strong>document vs window:</strong> <code>window</code> is the browser tab itself — it holds globals like <code>alert()</code>, <code>setTimeout()</code>, and <code>location</code>. <code>document</code> lives inside <code>window</code> and represents the page content. Most DOM work uses <code>document</code>.</p>
+  </div>
+</section>
+
+<!-- ─── 2. Selecting elements ────────────────────────────── -->
+<section class="topic" id="selecting">
+  <div class="topic-header">
+    <span class="topic-tag tag-sel">Selecting</span>
+    <h2>Selecting elements</h2>
+  </div>
+
+  <p>Before you can change anything, you need to grab a reference to it. These are the four methods you'll use:</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Method</th><th>Finds</th><th>Returns</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>getElementById('id')</code></td>
+        <td>One element with that id</td>
+        <td>Single element or <code>null</code></td>
+      </tr>
+      <tr>
+        <td><code>querySelector('css')</code></td>
+        <td>First element matching CSS selector</td>
+        <td>Single element or <code>null</code></td>
+      </tr>
+      <tr>
+        <td><code>querySelectorAll('css')</code></td>
+        <td>All elements matching CSS selector</td>
+        <td>NodeList (array-like)</td>
+      </tr>
+      <tr>
+        <td><code>getElementsByClassName('cls')</code></td>
+        <td>All elements with that class</td>
+        <td>HTMLCollection (live)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="cb green">
+<pre><span class="cm">// getElementById — fastest, use when you have an id</span>
+<span class="kw">const</span> title = document.<span class="fn">getElementById</span>(<span class="str">'title'</span>);
+
+<span class="cm">// querySelector — most flexible, takes any CSS selector</span>
+<span class="kw">const</span> firstBtn  = document.<span class="fn">querySelector</span>(<span class="str">'button'</span>);
+<span class="kw">const</span> heroHeading = document.<span class="fn">querySelector</span>(<span class="str">'#hero h2'</span>);
+<span class="kw">const</span> active     = document.<span class="fn">querySelector</span>(<span class="str">'.active'</span>);
+
+<span class="cm">// querySelectorAll — get many elements at once</span>
+<span class="kw">const</span> allButtons = document.<span class="fn">querySelectorAll</span>(<span class="str">'button'</span>);
+<span class="kw">const</span> allCards   = document.<span class="fn">querySelectorAll</span>(<span class="str">'.card'</span>);
+
+<span class="cm">// Loop over a NodeList just like an array</span>
+allButtons.<span class="fn">forEach</span>(btn => {
+  console.<span class="fn">log</span>(btn.textContent);
+});</pre>
+  </div>
+
+  <div class="warn-box">
+    <span class="box-icon">⚠</span>
+    <p><strong>Always check for null.</strong> If the selector finds nothing, <code>querySelector</code> returns <code>null</code>. Calling a method on <code>null</code> throws a TypeError. Either confirm the element exists in HTML, or check: <code>if (el) { ... }</code>.</p>
+  </div>
+
+  <!-- Sandbox -->
+  <div class="sandbox">
+    <div class="sandbox-bar">
+      <span class="sandbox-label">try it — select and inspect elements</span>
+    </div>
+    <div class="sandbox-body">
+      <div class="sb-code-wrap">
+        <textarea class="sb-html-editor" spellcheck="false"><h2 id="main-title">Hello, DOM!</h2>
+<p class="note">First note.</p>
+<p class="note">Second note.</p>
+<button id="btn">Click me</button></textarea>
+        <textarea class="sb-js-editor" spellcheck="false">const title = document.getElementById('main-title');
+const notes = document.querySelectorAll('.note');
+
+title.style.color = 'teal';
+notes.forEach((p, i) => {
+  p.textContent = `Note ${i + 1}: selected!`;
+  p.style.color = '#a78bfa';
+});
+
+const btn = document.querySelector('#btn');
+btn.textContent = 'Found me!';</textarea>
+        <button class="sb-run-btn" onclick="runSandbox(this)">▶ Run</button>
+      </div>
+      <div class="sb-preview"><iframe title="sandbox preview"></iframe></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 3. Manipulating elements ──────────────────────────── -->
+<section class="topic" id="manipulating">
+  <div class="topic-header">
+    <span class="topic-tag tag-manip">Manipulating</span>
+    <h2>Manipulating elements</h2>
+  </div>
+
+  <p>Once you have a reference to an element, you can read or change almost anything about it: its text, its HTML content, its attributes, or even whether it exists on the page at all.</p>
+
+  <p><strong>Reading and writing content:</strong></p>
+
+  <div class="cb blue">
+<pre><span class="kw">const</span> el = document.<span class="fn">getElementById</span>(<span class="str">'box'</span>);
+
+<span class="cm">// textContent — plain text only, safe (no HTML injection)</span>
+el.textContent = <span class="str">'Hello!'</span>;
+console.<span class="fn">log</span>(el.textContent);
+
+<span class="cm">// innerHTML — renders HTML tags (use carefully — never with user input)</span>
+el.innerHTML = <span class="str">'&lt;strong&gt;Bold text&lt;/strong&gt; inside the element'</span>;</pre>
+  </div>
+
+  <p><strong>Creating and inserting new elements:</strong></p>
+
+  <div class="cb blue">
+<pre><span class="cm">// 1. Create a new element</span>
+<span class="kw">const</span> newItem = document.<span class="fn">createElement</span>(<span class="str">'li'</span>);
+newItem.textContent = <span class="str">'New item'</span>;
+newItem.classList.<span class="fn">add</span>(<span class="str">'item'</span>);
+
+<span class="cm">// 2. Insert it into the page</span>
+<span class="kw">const</span> list = document.<span class="fn">getElementById</span>(<span class="str">'my-list'</span>);
+list.<span class="fn">appendChild</span>(newItem);       <span class="cm">// adds to end</span>
+list.<span class="fn">prepend</span>(newItem);           <span class="cm">// adds to start</span>
+
+<span class="cm">// insertAdjacentElement gives precise control</span>
+<span class="cm">// positions: 'beforebegin' 'afterbegin' 'beforeend' 'afterend'</span>
+list.<span class="fn">insertAdjacentElement</span>(<span class="str">'beforeend'</span>, newItem);</pre>
+  </div>
+
+  <p><strong>Removing elements and working with attributes:</strong></p>
+
+  <div class="cb blue">
+<pre><span class="cm">// Remove an element from the page</span>
+<span class="kw">const</span> staleEl = document.<span class="fn">getElementById</span>(<span class="str">'remove-me'</span>);
+staleEl.<span class="fn">remove</span>();
+
+<span class="cm">// Get / set / remove HTML attributes</span>
+<span class="kw">const</span> link = document.<span class="fn">querySelector</span>(<span class="str">'a'</span>);
+console.<span class="fn">log</span>(link.<span class="fn">getAttribute</span>(<span class="str">'href'</span>));
+link.<span class="fn">setAttribute</span>(<span class="str">'href'</span>, <span class="str">'https://example.com'</span>);
+link.<span class="fn">setAttribute</span>(<span class="str">'target'</span>, <span class="str">'_blank'</span>);
+link.<span class="fn">removeAttribute</span>(<span class="str">'target'</span>);</pre>
+  </div>
+
+  <div class="sandbox">
+    <div class="sandbox-bar">
+      <span class="sandbox-label">try it — build a list dynamically</span>
+    </div>
+    <div class="sandbox-body">
+      <div class="sb-code-wrap">
+        <textarea class="sb-html-editor" spellcheck="false"><h3>My reading list</h3>
+<ul id="books"></ul></textarea>
+        <textarea class="sb-js-editor" spellcheck="false">const books = [
+  'The Pragmatic Programmer',
+  'You Don\'t Know JS',
+  'Eloquent JavaScript',
+];
+
+const list = document.getElementById('books');
+list.innerHTML = ''; // clear first
+
+books.forEach((title, i) => {
+  const li = document.createElement('li');
+  li.textContent = `${i + 1}. ${title}`;
+  li.style.padding = '4px 0';
+  list.appendChild(li);
+});</textarea>
+        <button class="sb-run-btn" onclick="runSandbox(this)">▶ Run</button>
+      </div>
+      <div class="sb-preview"><iframe title="sandbox preview"></iframe></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 4. Events ─────────────────────────────────────────── -->
+<section class="topic" id="events">
+  <div class="topic-header">
+    <span class="topic-tag tag-events">Events</span>
+    <h2>Events — responding to the user</h2>
+  </div>
+
+  <p>Events are things that happen in the browser: a click, a key press, the page loading, a mouse moving. You attach a <strong>listener</strong> to an element, and it calls a function whenever that event fires.</p>
+
+  <div class="cb orange">
+<pre><span class="kw">const</span> btn = document.<span class="fn">getElementById</span>(<span class="str">'my-btn'</span>);
+
+<span class="cm">// addEventListener(eventName, callbackFunction)</span>
+btn.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, <span class="kw">function</span>(event) {
+  console.<span class="fn">log</span>(<span class="str">'Button clicked!'</span>);
+  console.<span class="fn">log</span>(<span class="str">'Event object:'</span>, event.type);
+});
+
+<span class="cm">// Arrow function — same result, cleaner</span>
+btn.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  btn.textContent = <span class="str">'Clicked!'</span>;
+  btn.disabled = <span class="acc">true</span>;
+});</pre>
+  </div>
+
+  <p>The most common events:</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Event</th><th>Fires when…</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>click</code></td><td>User clicks the element</td></tr>
+      <tr><td><code>dblclick</code></td><td>User double-clicks</td></tr>
+      <tr><td><code>mouseover</code> / <code>mouseout</code></td><td>Mouse enters / leaves the element</td></tr>
+      <tr><td><code>keydown</code> / <code>keyup</code></td><td>A key is pressed / released</td></tr>
+      <tr><td><code>input</code></td><td>Value of an input changes</td></tr>
+      <tr><td><code>submit</code></td><td>A form is submitted</td></tr>
+      <tr><td><code>DOMContentLoaded</code></td><td>HTML has fully parsed (before images load)</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Event delegation</strong> — instead of attaching a listener to every item, attach one to the parent and check which child was clicked. This is essential when items are added dynamically.</p>
+
+  <div class="cb orange">
+<pre><span class="kw">const</span> list = document.<span class="fn">getElementById</span>(<span class="str">'task-list'</span>);
+
+<span class="cm">// One listener on the parent handles all children</span>
+list.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  <span class="cm">// e.target is the specific element that was clicked</span>
+  <span class="kw">if</span> (e.target.tagName === <span class="str">'LI'</span>) {
+    e.target.classList.<span class="fn">toggle</span>(<span class="str">'done'</span>);
+  }
+});</pre>
+  </div>
+
+  <div class="sandbox">
+    <div class="sandbox-bar">
+      <span class="sandbox-label">try it — click counter with events</span>
+    </div>
+    <div class="sandbox-body">
+      <div class="sb-code-wrap">
+        <textarea class="sb-html-editor" spellcheck="false"><div style="text-align:center; padding:20px; font-family:sans-serif">
+  <p id="count" style="font-size:48px; font-weight:bold; color:#1a1a2e">0</p>
+  <button id="inc" style="padding:10px 24px; margin:4px; cursor:pointer; border-radius:6px; border:2px solid #3b82f6; background:#eff6ff; font-size:15px">+ Add</button>
+  <button id="dec" style="padding:10px 24px; margin:4px; cursor:pointer; border-radius:6px; border:2px solid #f87171; background:#fef2f2; font-size:15px">− Remove</button>
+  <button id="reset" style="padding:10px 24px; margin:4px; cursor:pointer; border-radius:6px; border:2px solid #d1d5db; background:#f9fafb; font-size:15px">Reset</button>
+</div></textarea>
+        <textarea class="sb-js-editor" spellcheck="false">let count = 0;
+const display = document.getElementById('count');
+
+function update() {
+  display.textContent = count;
+  display.style.color = count > 0 ? '#10b981' : count < 0 ? '#f87171' : '#1a1a2e';
+}
+
+document.getElementById('inc').addEventListener('click', () => { count++; update(); });
+document.getElementById('dec').addEventListener('click', () => { count--; update(); });
+document.getElementById('reset').addEventListener('click', () => { count = 0; update(); });</textarea>
+        <button class="sb-run-btn" onclick="runSandbox(this)">▶ Run</button>
+      </div>
+      <div class="sb-preview"><iframe title="sandbox preview"></iframe></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 5. Forms ──────────────────────────────────────────── -->
+<section class="topic" id="forms">
+  <div class="topic-header">
+    <span class="topic-tag tag-forms">Forms</span>
+    <h2>Forms &amp; input</h2>
+  </div>
+
+  <p>Forms are how users send data to your page. The key workflow is: listen for <code>submit</code>, prevent the default page reload with <code>e.preventDefault()</code>, then read the values from the inputs.</p>
+
+  <div class="cb purple">
+<pre><span class="kw">const</span> form  = document.<span class="fn">querySelector</span>(<span class="str">'form'</span>);
+<span class="kw">const</span> input = document.<span class="fn">getElementById</span>(<span class="str">'username'</span>);
+<span class="kw">const</span> output = document.<span class="fn">getElementById</span>(<span class="str">'result'</span>);
+
+form.<span class="fn">addEventListener</span>(<span class="str">'submit'</span>, (e) => {
+  e.<span class="fn">preventDefault</span>(); <span class="cm">// stops the browser refreshing the page</span>
+
+  <span class="kw">const</span> name = input.value.<span class="fn">trim</span>(); <span class="cm">// .trim() removes whitespace</span>
+
+  <span class="kw">if</span> (!name) {
+    output.textContent = <span class="str">'Please enter a name.'</span>;
+    <span class="kw">return</span>;
+  }
+
+  output.textContent = <span class="str">`Hello, ${name}!`</span>;
+  input.value = <span class="str">''</span>; <span class="cm">// clear the input</span>
+});</pre>
+  </div>
+
+  <p>Reading different input types:</p>
+
+  <div class="cb purple">
+<pre><span class="cm">// Text input — .value gives the current string</span>
+<span class="kw">const</span> text = document.<span class="fn">getElementById</span>(<span class="str">'name-input'</span>).value;
+
+<span class="cm">// Number input — .value is still a string, convert it</span>
+<span class="kw">const</span> age = <span class="fn">Number</span>(document.<span class="fn">getElementById</span>(<span class="str">'age-input'</span>).value);
+
+<span class="cm">// Checkbox — .checked is a boolean</span>
+<span class="kw">const</span> agreed = document.<span class="fn">getElementById</span>(<span class="str">'agree'</span>).checked;
+
+<span class="cm">// Select / dropdown — .value gives selected option</span>
+<span class="kw">const</span> colour = document.<span class="fn">getElementById</span>(<span class="str">'colour-select'</span>).value;</pre>
+  </div>
+
+  <div class="sandbox">
+    <div class="sandbox-bar">
+      <span class="sandbox-label">try it — working form with validation</span>
+    </div>
+    <div class="sandbox-body">
+      <div class="sb-code-wrap">
+        <textarea class="sb-html-editor" spellcheck="false"><div style="padding:16px; font-family:sans-serif">
+  <form id="signup">
+    <div style="margin-bottom:10px">
+      <label style="display:block; font-size:13px; color:#374151; margin-bottom:4px">Name</label>
+      <input id="f-name" type="text" placeholder="Ada Lovelace" style="padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; width:100%; font-size:14px">
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="display:block; font-size:13px; color:#374151; margin-bottom:4px">Age</label>
+      <input id="f-age" type="number" placeholder="18" style="padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; width:100%; font-size:14px">
+    </div>
+    <button type="submit" style="padding:9px 20px; background:#3b82f6; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:14px">Sign up</button>
+  </form>
+  <p id="msg" style="margin-top:12px; font-size:14px"></p>
+</div></textarea>
+        <textarea class="sb-js-editor" spellcheck="false">const form = document.getElementById('signup');
+const msg  = document.getElementById('msg');
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('f-name').value.trim();
+  const age  = Number(document.getElementById('f-age').value);
+
+  if (!name) { msg.textContent = '⚠ Please enter your name.'; msg.style.color = '#f87171'; return; }
+  if (!age || age < 13) { msg.textContent = '⚠ Must be at least 13.'; msg.style.color = '#f87171'; return; }
+
+  msg.textContent = `✓ Welcome, ${name}! (age ${age})`;
+  msg.style.color = '#10b981';
+  form.reset();
+});</textarea>
+        <button class="sb-run-btn" onclick="runSandbox(this)">▶ Run</button>
+      </div>
+      <div class="sb-preview"><iframe title="sandbox preview"></iframe></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 6. Dynamic Styling ────────────────────────────────── -->
+<section class="topic" id="styling">
+  <div class="topic-header">
+    <span class="topic-tag tag-style">Styling</span>
+    <h2>Dynamic styling</h2>
+  </div>
+
+  <p>There are two ways to change how something looks with JavaScript. Prefer <strong>classList</strong> — it keeps your style logic in CSS where it belongs, and JavaScript just toggles class names.</p>
+
+  <div class="cb pink">
+<pre><span class="kw">const</span> el = document.<span class="fn">getElementById</span>(<span class="str">'card'</span>);
+
+<span class="cm">// classList — the right way</span>
+el.classList.<span class="fn">add</span>(<span class="str">'active'</span>);       <span class="cm">// add a class</span>
+el.classList.<span class="fn">remove</span>(<span class="str">'hidden'</span>);    <span class="cm">// remove a class</span>
+el.classList.<span class="fn">toggle</span>(<span class="str">'open'</span>);      <span class="cm">// add if absent, remove if present</span>
+el.classList.<span class="fn">contains</span>(<span class="str">'active'</span>); <span class="cm">// → true or false</span>
+
+<span class="cm">// .style — fine for one-off, calculated values</span>
+el.style.width  = <span class="str">'200px'</span>;
+el.style.opacity = <span class="str">'0.5'</span>;
+<span class="cm">// camelCase for properties with hyphens:</span>
+el.style.backgroundColor = <span class="str">'#3b82f6'</span>;  <span class="cm">// background-color</span>
+el.style.borderRadius = <span class="str">'8px'</span>;         <span class="cm">// border-radius</span></pre>
+  </div>
+
+  <div class="tip">
+    <span class="box-icon">💡</span>
+    <p><strong>classList vs style:</strong> put all your visual states in CSS classes (<code>.active</code>, <code>.hidden</code>, <code>.error</code>), then use <code>classList.toggle()</code> to switch between them. Only use <code>.style</code> directly for values you calculate at runtime (like a width based on a number).</p>
+  </div>
+
+  <div class="sandbox">
+    <div class="sandbox-bar">
+      <span class="sandbox-label">try it — dark mode toggle</span>
+    </div>
+    <div class="sandbox-body">
+      <div class="sb-code-wrap">
+        <textarea class="sb-html-editor" spellcheck="false"><style>
+  body { font-family: sans-serif; padding: 20px; transition: all 0.3s; background:#fff; color:#111; }
+  body.dark { background: #1a1a2e; color: #e2e8f0; }
+  .card { padding: 16px; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 12px; transition: all 0.3s; }
+  body.dark .card { border-color: #374151; background: #16213e; }
+  .btn { padding: 8px 18px; border-radius: 6px; border: 1px solid #374151; cursor: pointer; background: #f3f4f6; transition: all 0.3s; }
+  body.dark .btn { background: #374151; color: #e2e8f0; border-color: #4b5563; }
+</style>
+<button class="btn" id="toggle">🌙 Dark Mode</button>
+<div class="card"><strong>Card title</strong><p>Some content here.</p></div>
+<div class="card"><strong>Another card</strong><p>More content.</p></div></textarea>
+        <textarea class="sb-js-editor" spellcheck="false">const btn = document.getElementById('toggle');
+
+btn.addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  btn.textContent = isDark ? '☀ Light Mode' : '🌙 Dark Mode';
+});</textarea>
+        <button class="sb-run-btn" onclick="runSandbox(this)">▶ Run</button>
+      </div>
+      <div class="sb-preview"><iframe title="sandbox preview"></iframe></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 7. localStorage ───────────────────────────────────── -->
+<section class="topic" id="storage">
+  <div class="topic-header">
+    <span class="topic-tag tag-storage">localStorage</span>
+    <h2>localStorage — saving data in the browser</h2>
+  </div>
+
+  <p><code>localStorage</code> lets you save small pieces of data in the user's browser that survive page reloads and even browser restarts. It stores everything as strings, so use <code>JSON.stringify</code>/<code>JSON.parse</code> for anything more than a simple value.</p>
+
+  <div class="cb emerald">
+<pre><span class="cm">// Save a value — stays until explicitly cleared</span>
+localStorage.<span class="fn">setItem</span>(<span class="str">'username'</span>, <span class="str">'Ada'</span>);
+
+<span class="cm">// Read it back</span>
+<span class="kw">const</span> name = localStorage.<span class="fn">getItem</span>(<span class="str">'username'</span>);
+console.<span class="fn">log</span>(name); <span class="cm">// "Ada"</span>
+
+<span class="cm">// Remove one key</span>
+localStorage.<span class="fn">removeItem</span>(<span class="str">'username'</span>);
+
+<span class="cm">// Clear everything</span>
+localStorage.<span class="fn">clear</span>();
+
+<span class="cm">// Saving objects — must stringify and parse</span>
+<span class="kw">const</span> settings = { theme: <span class="str">'dark'</span>, fontSize: <span class="num">16</span> };
+localStorage.<span class="fn">setItem</span>(<span class="str">'settings'</span>, <span class="fn">JSON</span>.<span class="fn">stringify</span>(settings));
+
+<span class="kw">const</span> loaded = <span class="fn">JSON</span>.<span class="fn">parse</span>(localStorage.<span class="fn">getItem</span>(<span class="str">'settings'</span>));
+console.<span class="fn">log</span>(loaded.theme); <span class="cm">// "dark"</span></pre>
+  </div>
+
+  <div class="warn-box">
+    <span class="box-icon">⚠</span>
+    <p><strong>localStorage limits:</strong> stores only strings, has a ~5MB limit per origin, and is synchronous (can block the page if overused). Never store passwords, tokens, or sensitive data here — it's accessible to any JS on the page.</p>
+  </div>
+
+  <div class="sandbox">
+    <div class="sandbox-bar">
+      <span class="sandbox-label">try it — note that persists across runs</span>
+    </div>
+    <div class="sandbox-body">
+      <div class="sb-code-wrap">
+        <textarea class="sb-html-editor" spellcheck="false"><div style="padding:16px; font-family:sans-serif">
+  <h3 style="margin-bottom:12px; font-size:15px">Sticky note (saved in browser)</h3>
+  <textarea id="note" rows="4" placeholder="Type something…" style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; resize:vertical"></textarea>
+  <div style="display:flex; gap:8px; margin-top:8px">
+    <button id="save-btn" style="padding:7px 16px; background:#10b981; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px">Save</button>
+    <button id="clear-btn" style="padding:7px 16px; background:#f87171; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px">Clear</button>
+  </div>
+  <p id="status" style="margin-top:8px; font-size:12px; color:#6b7280"></p>
+</div></textarea>
+        <textarea class="sb-js-editor" spellcheck="false">const noteEl  = document.getElementById('note');
+const statusEl = document.getElementById('status');
+
+// Load saved note on startup
+const saved = localStorage.getItem('sticky-note');
+if (saved) { noteEl.value = saved; statusEl.textContent = 'Loaded from storage.'; }
+
+document.getElementById('save-btn').addEventListener('click', () => {
+  localStorage.setItem('sticky-note', noteEl.value);
+  statusEl.textContent = '✓ Saved at ' + new Date().toLocaleTimeString();
+  statusEl.style.color = '#10b981';
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  localStorage.removeItem('sticky-note');
+  noteEl.value = '';
+  statusEl.textContent = 'Cleared.';
+  statusEl.style.color = '#f87171';
+});</textarea>
+        <button class="sb-run-btn" onclick="runSandbox(this)">▶ Run</button>
+      </div>
+      <div class="sb-preview"><iframe title="sandbox preview"></iframe></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 8. Mini project ───────────────────────────────────── -->
+<section class="topic" id="project">
+  <div class="topic-header">
+    <span class="topic-tag tag-dom">Project</span>
+    <h2>Mini project — to-do list</h2>
+  </div>
+
+  <p>This project brings together everything from this guide: selecting elements, creating nodes, handling events, toggling classes, and persisting data. Read through it, run it, then try extending it.</p>
+
+  <div class="sandbox">
+    <div class="sandbox-bar">
+      <span class="sandbox-label">full to-do list — edit and extend it</span>
+    </div>
+    <div class="sandbox-body">
+      <div class="sb-code-wrap">
+        <textarea class="sb-html-editor" spellcheck="false"><style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; padding: 20px; background: #f8fafc; color: #0f172a; }
+  h2 { font-size: 18px; margin-bottom: 14px; }
+  .add-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .add-row input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+  .add-row button { padding: 8px 16px; background: #3b82f6; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  #todo-list { list-style: none; }
+  #todo-list li { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; font-size: 14px; transition: opacity .2s; }
+  #todo-list li.done { text-decoration: line-through; opacity: 0.5; }
+  .del-btn { background: none; border: none; cursor: pointer; color: #f87171; font-size: 16px; padding: 0 4px; }
+  .task-text { cursor: pointer; flex: 1; }
+  #empty { text-align: center; color: #94a3b8; font-size: 13px; padding: 20px 0; display:none; }
+</style>
+<h2>📋 To-Do List</h2>
+<div class="add-row">
+  <input id="task-input" type="text" placeholder="What needs doing?" />
+  <button id="add-btn">Add</button>
+</div>
+<ul id="todo-list"></ul>
+<p id="empty">Nothing here yet — add a task!</p></textarea>
+        <textarea class="sb-js-editor" spellcheck="false">const input   = document.getElementById('task-input');
+const addBtn  = document.getElementById('add-btn');
+const list    = document.getElementById('todo-list');
+const empty   = document.getElementById('empty');
+
+// Load tasks from localStorage
+let tasks = JSON.parse(localStorage.getItem('todos') || '[]');
+tasks.forEach(t => renderTask(t.text, t.done));
+updateEmpty();
+
+function renderTask(text, done = false) {
+  const li = document.createElement('li');
+  if (done) li.classList.add('done');
+
+  const span = document.createElement('span');
+  span.className = 'task-text';
+  span.textContent = text;
+  span.addEventListener('click', () => {
+    li.classList.toggle('done');
+    save();
+  });
+
+  const del = document.createElement('button');
+  del.className = 'del-btn';
+  del.textContent = '✕';
+  del.addEventListener('click', () => {
+    li.remove();
+    save();
+    updateEmpty();
+  });
+
+  li.append(span, del);
+  list.appendChild(li);
+  updateEmpty();
+}
+
+function addTask() {
+  const text = input.value.trim();
+  if (!text) return;
+  renderTask(text);
+  input.value = '';
+  save();
+}
+
+function save() {
+  const items = [...list.querySelectorAll('li')].map(li => ({
+    text: li.querySelector('.task-text').textContent,
+    done: li.classList.contains('done'),
+  }));
+  localStorage.setItem('todos', JSON.stringify(items));
+}
+
+function updateEmpty() {
+  empty.style.display = list.children.length === 0 ? 'block' : 'none';
+}
+
+addBtn.addEventListener('click', addTask);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });</textarea>
+        <button class="sb-run-btn" onclick="runSandbox(this)">▶ Run</button>
+      </div>
+      <div class="sb-preview"><iframe title="sandbox preview"></iframe></div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-icon">💡</span>
+    <p><strong>Extension ideas:</strong> add a due date input, a "clear completed" button, drag-and-drop reordering, or filter buttons (All / Active / Done). Each of these touches a different DOM concept from this guide.</p>
+  </div>
+</section>
+
+<!-- ─── Finale ────────────────────────────────────────────── -->
+<div class="finale">
+  <h2>// browser JS unlocked</h2>
+  <p>You can now select, modify, create, and remove any element on a page — and respond to every user action. The DOM is the foundation of everything you'll build in the browser.</p>
+  <div class="next-links">
+    <a class="next-link" href="#">Part 04 — Async &amp; Fetch</a>
+    <a class="next-link" href="#">Part 05 — ES6+ Modern JS</a>
+    <a class="next-link" href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model" target="_blank">MDN DOM docs ↗</a>
+  </div>
+</div>
+
+</div><!-- /.wrap -->
+</main>
+
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
+<script>
+/* ─── Shared iframe builder ─── */
+function buildDoc(html, js) {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><style>body{margin:0}</style></head>
+<body>
+${html}
+<script>
+(function(){
+  try { ${js} } catch(e) {
+    var d=document.createElement('div');
+    d.style='color:#f87171;font-family:monospace;font-size:12px;padding:8px;background:#1a1a2e';
+    d.textContent='Error: '+e.message;
+    document.body.appendChild(d);
+  }
+})();
+<\/script>
+</body></html>`;
+}
+
+/* ─── Hero REPL ─── */
+const HERO_HTML = `<style>
+  body{font-family:system-ui,sans-serif;padding:20px;background:#f8fafc;color:#0f172a}
+  h2{color:#0f172a;margin-bottom:12px}
+  #hero-box{border:2px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:14px;transition:all .3s}
+  ul{padding-left:20px;margin:0}li{margin-bottom:4px;font-size:14px}
+</style>
+<h2 id="hero-title">Waiting for JavaScript…</h2>
+<div id="hero-box"><p style="color:#94a3b8;font-size:14px">JavaScript will populate this area.</p></div>
+<ul id="hero-list"></ul>`;
+
+function runHero() {
+  const js = document.getElementById('hero-editor').value;
+  const frame = document.getElementById('hero-frame');
+  frame.srcdoc = buildDoc(HERO_HTML, js);
+}
+
+window.addEventListener('DOMContentLoaded', runHero);
+
+/* ─── Section sandboxes ─── */
+function runSandbox(btn) {
+  const wrap    = btn.closest('.sb-code-wrap');
+  const sandbox = btn.closest('.sandbox');
+  const htmlEd  = wrap.querySelector('.sb-html-editor');
+  const jsEd    = wrap.querySelector('.sb-js-editor');
+  const frame   = sandbox.querySelector('iframe');
+  frame.srcdoc  = buildDoc(htmlEd.value, jsEd.value);
+}
+
+// Run all sandboxes on load so they render immediately
+window.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.sb-run-btn').forEach(btn => runSandbox(btn));
+});
+
+// Shift+Enter shortcut
+document.addEventListener('keydown', e => {
+  if (!e.shiftKey || e.key !== 'Enter') return;
+  const t = e.target;
+  if (t.classList.contains('sb-js-editor') || t.classList.contains('sb-html-editor')) {
+    e.preventDefault();
+    t.closest('.sb-code-wrap').querySelector('.sb-run-btn').click();
+  }
+  if (t.classList.contains('pane-editor')) {
+    e.preventDefault();
+    runHero();
+  }
+});
+</script>
+
+</body>
+</html>
