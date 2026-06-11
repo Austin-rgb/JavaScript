@@ -19,4 +19,6 @@ Start exploring the tutorials and learn JavaScript through practical examples an
 
 ---
 
-*For more information about these tutorials, check the repository files.*
+1. [Environment Setup](/js-setup-guide.html)
+2. [Fundamentals](/js-fundamentals-guide.html)
+3. [Browser js](browser-js-guide.html)
