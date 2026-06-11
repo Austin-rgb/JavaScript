@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JS Fundamentals · Beginner Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Tokens ─────────────────────────────────────────── */
+    :root {
+      --bg:        #0d0f12;
+      --surface:   #141720;
+      --surface2:  #1a1f2e;
+      --border:    #1e2330;
+      --border2:   #2a3045;
+      --accent:    #4fffb0;
+      --accent2:   #3b82f6;
+      --accent3:   #a78bfa;   /* purple — new to this guide, for type annotations */
+      --warn:      #facc15;
+      --danger:    #f87171;
+      --text:      #d4dae8;
+      --muted:     #5a6378;
+      --heading:   #f0f4ff;
+
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+      --radius: 6px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.75;
+    }
+
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap { max-width: 820px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── Series breadcrumb ──────────────────────────────── */
+    .breadcrumb {
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .08em;
+    }
+
+    .breadcrumb span { color: var(--accent); }
+
+    /* ─── Hero ───────────────────────────────────────────── */
+    .hero {
+      padding: 60px 0 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-family: var(--mono);
+      font-size: clamp(24px, 4.5vw, 40px);
+      font-weight: 600;
+      color: var(--heading);
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 em { font-style: normal; color: var(--accent3); }
+
+    .hero-sub {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 560px;
+      margin-bottom: 40px;
+    }
+
+    /* ─── Signature: Live REPL hero ──────────────────────── */
+    .hero-repl {
+      background: #090b0e;
+      border: 1px solid var(--border2);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      overflow: hidden;
+    }
+
+    .repl-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .repl-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .repl-dot.r { background: #f87171; }
+    .repl-dot.y { background: var(--warn); }
+    .repl-dot.g { background: var(--accent); }
+
+    .repl-filename {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: 6px;
+    }
+
+    .repl-run-btn {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      border-radius: 4px;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .repl-run-btn:hover { opacity: .85; }
+
+    .repl-editor {
+      width: 100%;
+      min-height: 160px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: vertical;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      padding: 18px 20px;
+      line-height: 1.7;
+      caret-color: var(--accent);
+    }
+
+    .repl-output-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 20px 6px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+
+    .repl-output {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      padding: 12px 20px 18px;
+      background: var(--surface);
+      min-height: 52px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .repl-output .out-line { display: block; }
+    .repl-output .out-error { color: var(--danger); }
+    .repl-output .out-val { color: var(--accent2); }
+
+    .hero-caption {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      padding: 10px 0 48px;
+      text-align: center;
+    }
+
+    /* ─── Nav ────────────────────────────────────────────── */
+    .topic-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topic-nav a {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .05em;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 12px;
+      transition: border-color .2s, color .2s;
+    }
+
+    .topic-nav a:hover {
+      border-color: var(--accent3);
+      color: var(--accent3);
+      text-decoration: none;
+    }
+
+    /* ─── Main ───────────────────────────────────────────── */
+    main { padding: 56px 0 80px; }
+
+    /* ─── Topic section ──────────────────────────────────── */
+    .topic {
+      margin-bottom: 72px;
+    }
+
+    .topic-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topic-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .tag-var   { color: var(--bg); background: var(--accent); }
+    .tag-type  { color: var(--bg); background: var(--accent3); }
+    .tag-op    { color: var(--bg); background: var(--accent2); }
+    .tag-flow  { color: var(--bg); background: var(--warn); }
+    .tag-fn    { color: var(--bg); background: #f97316; }
+    .tag-arr   { color: var(--bg); background: #06b6d4; }
+    .tag-obj   { color: var(--bg); background: #10b981; }
+    .tag-err   { color: var(--bg); background: var(--danger); }
+
+    .topic-header h2 {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--heading);
+    }
+
+    .topic p { margin-bottom: 16px; }
+
+    /* ─── Inline code ────────────────────────────────────── */
+    code {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--accent);
+      background: rgba(78,255,176,.07);
+      border-radius: 3px;
+      padding: 1px 6px;
+    }
+
+    /* ─── Code block ─────────────────────────────────────── */
+    .cb {
+      background: #090b0e;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin: 16px 0;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .cb.purple { border-left-color: var(--accent3); }
+    .cb.blue   { border-left-color: var(--accent2); }
+    .cb.yellow { border-left-color: var(--warn); }
+    .cb.orange { border-left-color: #f97316; }
+    .cb.cyan   { border-left-color: #06b6d4; }
+    .cb.green  { border-left-color: #10b981; }
+    .cb.red    { border-left-color: var(--danger); }
+
+    .cb pre {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.7;
+      white-space: pre;
+      margin: 0;
+    }
+
+    /* syntax colouring */
+    .kw  { color: var(--accent3); }   /* keywords */
+    .fn  { color: #f97316; }          /* function names */
+    .str { color: var(--warn); }      /* strings */
+    .num { color: var(--accent2); }   /* numbers */
+    .cm  { color: var(--muted); font-style: italic; } /* comments */
+    .acc { color: var(--accent); }    /* accent green — values, output */
+    .err { color: var(--danger); }    /* errors */
+
+    /* ─── Comparison table ───────────────────────────────── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    .compare-table th {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border2);
+    }
+
+    .compare-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:hover td { background: var(--surface); }
+
+    /* ─── Tip / Warn ─────────────────────────────────────── */
+    .tip, .warn-box, .concept-box {
+      display: flex;
+      gap: 12px;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin: 18px 0;
+      font-size: 14px;
+    }
+
+    .tip        { background: rgba(78,255,176,.05);  border: 1px solid rgba(78,255,176,.18); }
+    .warn-box   { background: rgba(250,204,21,.05);  border: 1px solid rgba(250,204,21,.2); }
+    .concept-box{ background: rgba(167,139,250,.05); border: 1px solid rgba(167,139,250,.2); }
+
+    .tip p, .warn-box p, .concept-box p { margin: 0; color: var(--text); }
+    .box-icon { flex-shrink: 0; font-size: 15px; margin-top: 2px; }
+
+    /* ─── Mini REPL (per section) ────────────────────────── */
+    .mini-repl {
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    .mini-repl-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mini-repl-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .mini-run {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      border-radius: 3px;
+      padding: 4px 12px;
+      cursor: pointer;
+      letter-spacing: .04em;
+      transition: opacity .15s;
+    }
+    .mini-run:hover { opacity: .8; }
+
+    .mini-editor {
+      width: 100%;
+      background: #090b0e;
+      border: none;
+      outline: none;
+      resize: vertical;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      padding: 14px 16px;
+      line-height: 1.7;
+      min-height: 80px;
+      caret-color: var(--accent);
+    }
+
+    .mini-out {
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 10px 16px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      min-height: 36px;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+
+    .mini-out .out-error { color: var(--danger); }
+
+    /* ─── Concept pills ──────────────────────────────────── */
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .pill {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--heading);
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 4px 14px;
+    }
+
+    /* ─── Finale ─────────────────────────────────────────── */
+    .finale {
+      border-top: 1px solid var(--border);
+      padding-top: 48px;
+      text-align: center;
+    }
+
+    .finale h2 {
+      font-family: var(--mono);
+      font-size: 22px;
+      color: var(--heading);
+      margin-bottom: 12px;
+    }
+
+    .finale p { color: var(--muted); max-width: 500px; margin: 0 auto 24px; }
+
+    .next-links { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .next-link {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent2);
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 8px 18px;
+      transition: border-color .2s;
+    }
+    .next-link:hover { border-color: var(--accent2); text-decoration: none; }
+
+    /* ─── Responsive ─────────────────────────────────────── */
+    @media (max-width: 560px) {
+      .hero { padding: 40px 0 0; }
+      .topic-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .compare-table { font-size: 13px; }
+      .compare-table th, .compare-table td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="breadcrumb">
+  <div class="wrap">
+    JS Dev Series &nbsp;/&nbsp; <span>Part 02 — Fundamentals</span>
+  </div>
+</div>
+
+<!-- ─── Hero ─────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">// absolute beginner · windows</div>
+    <h1>JavaScript<br><em>Fundamentals</em></h1>
+    <p class="hero-sub">The core building blocks of every JS program — variables, types, functions, loops, objects, and arrays. Edit any example below and run it live.</p>
+
+    <!-- Signature element: runnable hero REPL -->
+    <div class="hero-repl">
+      <div class="repl-titlebar">
+        <span class="repl-dot r"></span>
+        <span class="repl-dot y"></span>
+        <span class="repl-dot g"></span>
+        <span class="repl-filename">playground.js</span>
+        <button class="repl-run-btn" onclick="runHeroRepl()">▶ Run</button>
+      </div>
+      <textarea class="repl-editor" id="hero-editor" spellcheck="false">// Edit this and press Run — it executes right here in the browser.
+
+const greeting = "Hello, JavaScript!";
+const year = new Date().getFullYear();
+
+console.log(greeting);
+console.log("It is currently", year);
+
+// A simple function
+function double(n) {
+  return n * 2;
+}
+
+console.log("Double 21 is", double(21));</textarea>
+      <div class="repl-output-label">output</div>
+      <div class="repl-output" id="hero-output"><span style="color:var(--muted)">Press Run to see output…</span></div>
+    </div>
+    <p class="hero-caption">// every code block in this guide is editable and runnable</p>
+
+    <nav class="topic-nav" aria-label="Topics">
+      <a href="#variables">Variables</a>
+      <a href="#types">Data types</a>
+      <a href="#operators">Operators</a>
+      <a href="#conditionals">Conditionals</a>
+      <a href="#loops">Loops</a>
+      <a href="#functions">Functions</a>
+      <a href="#arrays">Arrays</a>
+      <a href="#objects">Objects</a>
+      <a href="#errors">Errors</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<!-- ─── 1. Variables ─────────────────────────────────────── -->
+<section class="topic" id="variables">
+  <div class="topic-header">
+    <span class="topic-tag tag-var">Variables</span>
+    <h2>Variables — storing values</h2>
+  </div>
+
+  <p>A variable is a named container for a value. JavaScript gives you three keywords to create them: <code>const</code>, <code>let</code>, and <code>var</code>. As a beginner, use <code>const</code> by default and <code>let</code> when you need to change the value later. Ignore <code>var</code> — it's older and has confusing rules.</p>
+
+  <div class="cb">
+<pre><span class="cm">// const — value cannot be reassigned</span>
+<span class="kw">const</span> name = <span class="str">"Ada"</span>;
+<span class="kw">const</span> age  = <span class="num">30</span>;
+
+<span class="cm">// let — value can change</span>
+<span class="kw">let</span> score = <span class="num">0</span>;
+score = score + <span class="num">10</span>;   <span class="cm">// this is fine with let</span>
+
+<span class="cm">// This would throw an error — const cannot be reassigned:</span>
+<span class="cm">// name = "Grace";  ← TypeError</span>
+
+console.<span class="fn">log</span>(name, age, score);</pre>
+  </div>
+
+  <div class="concept-box">
+    <span class="box-icon">🧠</span>
+    <p><strong>Rule of thumb:</strong> start with <code>const</code>. If your editor complains that you're trying to reassign it, change it to <code>let</code>. This habit catches bugs early.</p>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">const city = "Johannesburg";
+let temperature = 18;
+temperature = temperature + 3;
+console.log(city, "temp:", temperature + "°C");</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── 2. Data Types ─────────────────────────────────────── -->
+<section class="topic" id="types">
+  <div class="topic-header">
+    <span class="topic-tag tag-type">Data Types</span>
+    <h2>Data types — what values can be</h2>
+  </div>
+
+  <p>Every value in JavaScript has a type. The six you'll encounter every day:</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr><th>Type</th><th>Example</th><th>What it is</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>string</code></td><td><code>"hello"</code></td><td>Text — always in quotes</td></tr>
+      <tr><td><code>number</code></td><td><code>42</code> &nbsp;/&nbsp; <code>3.14</code></td><td>Any number, integer or decimal</td></tr>
+      <tr><td><code>boolean</code></td><td><code>true</code> / <code>false</code></td><td>A yes/no flag</td></tr>
+      <tr><td><code>null</code></td><td><code>null</code></td><td>Intentionally empty value</td></tr>
+      <tr><td><code>undefined</code></td><td><code>undefined</code></td><td>Variable declared but not given a value</td></tr>
+      <tr><td><code>object</code></td><td><code>{ name: "Ada" }</code></td><td>A collection of key-value pairs (covered later)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="cb purple">
+<pre><span class="kw">const</span> text    = <span class="str">"JavaScript"</span>;   <span class="cm">// string</span>
+<span class="kw">const</span> version = <span class="num">2024</span>;            <span class="cm">// number</span>
+<span class="kw">const</span> isReady = <span class="acc">true</span>;            <span class="cm">// boolean</span>
+<span class="kw">let</span>   nothing;                   <span class="cm">// undefined (no value assigned)</span>
+
+<span class="cm">// typeof tells you the type of any value</span>
+console.<span class="fn">log</span>(<span class="kw">typeof</span> text);      <span class="cm">// "string"</span>
+console.<span class="fn">log</span>(<span class="kw">typeof</span> version);   <span class="cm">// "number"</span>
+console.<span class="fn">log</span>(<span class="kw">typeof</span> isReady);   <span class="cm">// "boolean"</span>
+console.<span class="fn">log</span>(<span class="kw">typeof</span> nothing);   <span class="cm">// "undefined"</span></pre>
+  </div>
+
+  <p><strong>Template literals</strong> let you embed variables inside strings using backticks instead of quotes:</p>
+
+  <div class="cb purple">
+<pre><span class="kw">const</span> item  = <span class="str">"coffee"</span>;
+<span class="kw">const</span> price = <span class="num">4.5</span>;
+
+<span class="cm">// Old way — messy</span>
+console.<span class="fn">log</span>(<span class="str">"A "</span> + item + <span class="str">" costs $"</span> + price);
+
+<span class="cm">// Template literal — clean</span>
+console.<span class="fn">log</span>(<span class="str">`A ${item} costs $${price}`</span>);</pre>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">const product = "keyboard";
+const units = 3;
+const unitPrice = 49.99;
+const total = units * unitPrice;
+console.log(`${units}x ${product} = $${total}`);</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── 3. Operators ──────────────────────────────────────── -->
+<section class="topic" id="operators">
+  <div class="topic-header">
+    <span class="topic-tag tag-op">Operators</span>
+    <h2>Operators — doing things with values</h2>
+  </div>
+
+  <p><strong>Arithmetic operators</strong> work like you'd expect from maths:</p>
+
+  <div class="cb blue">
+<pre><span class="cm">// +  -  *  /  %  **</span>
+console.<span class="fn">log</span>(<span class="num">10</span> + <span class="num">3</span>);   <span class="cm">// 13  — addition</span>
+console.<span class="fn">log</span>(<span class="num">10</span> - <span class="num">3</span>);   <span class="cm">// 7   — subtraction</span>
+console.<span class="fn">log</span>(<span class="num">10</span> * <span class="num">3</span>);   <span class="cm">// 30  — multiplication</span>
+console.<span class="fn">log</span>(<span class="num">10</span> / <span class="num">3</span>);   <span class="cm">// 3.33… — division</span>
+console.<span class="fn">log</span>(<span class="num">10</span> % <span class="num">3</span>);   <span class="cm">// 1   — remainder (modulo)</span>
+console.<span class="fn">log</span>(<span class="num">2</span> ** <span class="num">8</span>);   <span class="cm">// 256 — exponentiation</span></pre>
+  </div>
+
+  <p><strong>Comparison operators</strong> return <code>true</code> or <code>false</code>:</p>
+
+  <div class="cb blue">
+<pre><span class="cm">// Always use === (strict equality), not == (loose equality)</span>
+console.<span class="fn">log</span>(<span class="num">5</span> === <span class="num">5</span>);     <span class="cm">// true</span>
+console.<span class="fn">log</span>(<span class="num">5</span> === <span class="str">"5"</span>);   <span class="cm">// false — different types!</span>
+console.<span class="fn">log</span>(<span class="num">5</span> !==  <span class="num">3</span>);    <span class="cm">// true  — not equal</span>
+console.<span class="fn">log</span>(<span class="num">10</span> > <span class="num">3</span>);     <span class="cm">// true</span>
+console.<span class="fn">log</span>(<span class="num">10</span> >= <span class="num">10</span>);   <span class="cm">// true</span></pre>
+  </div>
+
+  <div class="warn-box">
+    <span class="box-icon">⚠</span>
+    <p><strong>Always use <code>===</code>, never <code>==</code>.</strong> The double-equals <code>==</code> tries to convert types before comparing, which leads to surprising results like <code>0 == false</code> being <code>true</code>. Triple-equals is precise and predictable.</p>
+  </div>
+
+  <p><strong>Logical operators</strong> combine booleans:</p>
+
+  <div class="cb blue">
+<pre><span class="kw">const</span> isAdult  = <span class="acc">true</span>;
+<span class="kw">const</span> hasTicket = <span class="acc">false</span>;
+
+console.<span class="fn">log</span>(isAdult && hasTicket);  <span class="cm">// false — AND: both must be true</span>
+console.<span class="fn">log</span>(isAdult || hasTicket);  <span class="cm">// true  — OR: at least one must be true</span>
+console.<span class="fn">log</span>(!isAdult);             <span class="cm">// false — NOT: flips the value</span></pre>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">const a = 15;
+const b = 4;
+console.log(`${a} % ${b} =`, a % b);         // remainder
+console.log(`${a} > 10 AND even:`, a > 10 && a % 2 === 0);</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── 4. Conditionals ───────────────────────────────────── -->
+<section class="topic" id="conditionals">
+  <div class="topic-header">
+    <span class="topic-tag tag-flow">Conditionals</span>
+    <h2>Conditionals — making decisions</h2>
+  </div>
+
+  <p>An <code>if</code> statement runs a block of code only when a condition is <code>true</code>.</p>
+
+  <div class="cb yellow">
+<pre><span class="kw">const</span> temperature = <span class="num">28</span>;
+
+<span class="kw">if</span> (temperature > <span class="num">30</span>) {
+  console.<span class="fn">log</span>(<span class="str">"It's hot — stay hydrated."</span>);
+} <span class="kw">else if</span> (temperature > <span class="num">20</span>) {
+  console.<span class="fn">log</span>(<span class="str">"Comfortable weather."</span>);
+} <span class="kw">else</span> {
+  console.<span class="fn">log</span>(<span class="str">"It's cold — grab a jacket."</span>);
+}</pre>
+  </div>
+
+  <p>The <strong>ternary operator</strong> is a compact one-liner <code>if/else</code> for simple cases:</p>
+
+  <div class="cb yellow">
+<pre><span class="kw">const</span> age    = <span class="num">20</span>;
+<span class="kw">const</span> status = age >= <span class="num">18</span> ? <span class="str">"adult"</span> : <span class="str">"minor"</span>;
+<span class="cm">//                  condition ? if true : if false</span>
+console.<span class="fn">log</span>(status); <span class="cm">// "adult"</span></pre>
+  </div>
+
+  <p>Use a <code>switch</code> when you have many specific values to check:</p>
+
+  <div class="cb yellow">
+<pre><span class="kw">const</span> day = <span class="str">"Monday"</span>;
+
+<span class="kw">switch</span> (day) {
+  <span class="kw">case</span> <span class="str">"Saturday"</span>:
+  <span class="kw">case</span> <span class="str">"Sunday"</span>:
+    console.<span class="fn">log</span>(<span class="str">"Weekend!"</span>);
+    <span class="kw">break</span>;
+  <span class="kw">default</span>:
+    console.<span class="fn">log</span>(<span class="str">"Weekday."</span>);
+}</pre>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it — change score to see different results</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">const score = 73;
+
+let grade;
+if (score >= 90)      grade = "A";
+else if (score >= 75) grade = "B";
+else if (score >= 60) grade = "C";
+else                  grade = "F";
+
+console.log(`Score ${score} → Grade ${grade}`);</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── 5. Loops ──────────────────────────────────────────── -->
+<section class="topic" id="loops">
+  <div class="topic-header">
+    <span class="topic-tag tag-flow">Loops</span>
+    <h2>Loops — repeating actions</h2>
+  </div>
+
+  <p>A loop runs a block of code multiple times. The <code>for</code> loop is the most common:</p>
+
+  <div class="cb yellow">
+<pre><span class="cm">// for (start; condition; step)</span>
+<span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">1</span>; i <= <span class="num">5</span>; i++) {
+  console.<span class="fn">log</span>(<span class="str">`Step ${i}`</span>);
+}
+<span class="cm">// prints Step 1, Step 2 … Step 5</span></pre>
+  </div>
+
+  <p>A <code>while</code> loop keeps running as long as its condition is <code>true</code> — useful when you don't know in advance how many iterations you'll need:</p>
+
+  <div class="cb yellow">
+<pre><span class="kw">let</span> coins = <span class="num">1</span>;
+
+<span class="kw">while</span> (coins < <span class="num">100</span>) {
+  coins = coins * <span class="num">2</span>;   <span class="cm">// double each time</span>
+}
+
+console.<span class="fn">log</span>(<span class="str">`Coins after doubling: ${coins}`</span>);</pre>
+  </div>
+
+  <div class="tip">
+    <span class="box-icon">💡</span>
+    <p><strong>Avoid infinite loops.</strong> A <code>while</code> loop that never becomes <code>false</code> will freeze your program. Always make sure something inside the loop moves toward the exit condition.</p>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it — print the 3× table</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">for (let i = 1; i <= 10; i++) {
+  console.log(`3 × ${i} = ${3 * i}`);
+}</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── 6. Functions ──────────────────────────────────────── -->
+<section class="topic" id="functions">
+  <div class="topic-header">
+    <span class="topic-tag tag-fn">Functions</span>
+    <h2>Functions — reusable blocks of code</h2>
+  </div>
+
+  <p>A function is a named block of code you can call (run) whenever you need it. Instead of repeating the same logic everywhere, you write it once and call it by name.</p>
+
+  <div class="cb orange">
+<pre><span class="cm">// Define — write the function once</span>
+<span class="kw">function</span> <span class="fn">greet</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hello, ${name}!`</span>;
+}
+
+<span class="cm">// Call — use it as many times as you like</span>
+console.<span class="fn">log</span>(<span class="fn">greet</span>(<span class="str">"Ada"</span>));    <span class="cm">// Hello, Ada!</span>
+console.<span class="fn">log</span>(<span class="fn">greet</span>(<span class="str">"Grace"</span>));  <span class="cm">// Hello, Grace!</span></pre>
+  </div>
+
+  <p><strong>Arrow functions</strong> are a shorter way to write functions, especially for small single-purpose ones:</p>
+
+  <div class="cb orange">
+<pre><span class="cm">// Traditional</span>
+<span class="kw">function</span> <span class="fn">square</span>(n) { <span class="kw">return</span> n * n; }
+
+<span class="cm">// Arrow — same thing, shorter syntax</span>
+<span class="kw">const</span> square2 = (n) => n * n;
+
+<span class="cm">// Arrow with multiple lines needs curly braces + return</span>
+<span class="kw">const</span> <span class="fn">clamp</span> = (value, min, max) => {
+  <span class="kw">if</span> (value < min) <span class="kw">return</span> min;
+  <span class="kw">if</span> (value > max) <span class="kw">return</span> max;
+  <span class="kw">return</span> value;
+};
+
+console.<span class="fn">log</span>(<span class="fn">square2</span>(<span class="num">7</span>));           <span class="cm">// 49</span>
+console.<span class="fn">log</span>(<span class="fn">clamp</span>(<span class="num">150</span>, <span class="num">0</span>, <span class="num">100</span>)); <span class="cm">// 100</span></pre>
+  </div>
+
+  <p><strong>Default parameters</strong> let you give a parameter a fallback value:</p>
+
+  <div class="cb orange">
+<pre><span class="kw">function</span> <span class="fn">welcome</span>(name = <span class="str">"stranger"</span>) {
+  console.<span class="fn">log</span>(<span class="str">`Welcome, ${name}!`</span>);
+}
+
+<span class="fn">welcome</span>(<span class="str">"Lena"</span>);  <span class="cm">// Welcome, Lena!</span>
+<span class="fn">welcome</span>();        <span class="cm">// Welcome, stranger!</span></pre>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">const celsiusToFahrenheit = (c) => (c * 9/5) + 32;
+
+console.log(celsiusToFahrenheit(0));    // freezing
+console.log(celsiusToFahrenheit(100));  // boiling
+console.log(celsiusToFahrenheit(37));   // body temp</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── 7. Arrays ─────────────────────────────────────────── -->
+<section class="topic" id="arrays">
+  <div class="topic-header">
+    <span class="topic-tag tag-arr">Arrays</span>
+    <h2>Arrays — ordered lists of values</h2>
+  </div>
+
+  <p>An array stores multiple values in a single variable, in a specific order. Each item has an index starting from <code>0</code>.</p>
+
+  <div class="cb cyan">
+<pre><span class="kw">const</span> fruits = [<span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"cherry"</span>];
+
+console.<span class="fn">log</span>(fruits[<span class="num">0</span>]);           <span class="cm">// "apple"  — first item</span>
+console.<span class="fn">log</span>(fruits[<span class="num">2</span>]);           <span class="cm">// "cherry" — third item</span>
+console.<span class="fn">log</span>(fruits.length);       <span class="cm">// 3</span>
+
+fruits.<span class="fn">push</span>(<span class="str">"date"</span>);             <span class="cm">// add to end</span>
+fruits.<span class="fn">pop</span>();                    <span class="cm">// remove from end</span>
+console.<span class="fn">log</span>(fruits);             <span class="cm">// ["apple", "banana", "cherry"]</span></pre>
+  </div>
+
+  <p>The three array methods you'll use most often:</p>
+
+  <div class="cb cyan">
+<pre><span class="kw">const</span> numbers = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>];
+
+<span class="cm">// forEach — run a function for each item (no return value)</span>
+numbers.<span class="fn">forEach</span>(n => console.<span class="fn">log</span>(n * <span class="num">2</span>));
+
+<span class="cm">// map — transform every item, returns a new array</span>
+<span class="kw">const</span> doubled = numbers.<span class="fn">map</span>(n => n * <span class="num">2</span>);
+console.<span class="fn">log</span>(doubled);  <span class="cm">// [2, 4, 6, 8, 10]</span>
+
+<span class="cm">// filter — keep only items where the condition is true</span>
+<span class="kw">const</span> evens = numbers.<span class="fn">filter</span>(n => n % <span class="num">2</span> === <span class="num">0</span>);
+console.<span class="fn">log</span>(evens);    <span class="cm">// [2, 4]</span></pre>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">const prices = [12.5, 8.0, 23.99, 5.5, 17.0];
+
+// Get only prices over $10
+const expensive = prices.filter(p => p > 10);
+
+// Format each as a currency string
+const formatted = expensive.map(p => `$${p.toFixed(2)}`);
+
+console.log("Over $10:", formatted);</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── 8. Objects ────────────────────────────────────────── -->
+<section class="topic" id="objects">
+  <div class="topic-header">
+    <span class="topic-tag tag-obj">Objects</span>
+    <h2>Objects — grouping related data</h2>
+  </div>
+
+  <p>An object stores a collection of named values (called <strong>properties</strong>). Where an array uses numbered positions, an object uses named keys. Use objects when the pieces of data belong together and each has a distinct name.</p>
+
+  <div class="cb green">
+<pre><span class="kw">const</span> user = {
+  name: <span class="str">"Ada Lovelace"</span>,
+  age: <span class="num">36</span>,
+  isActive: <span class="acc">true</span>,
+};
+
+<span class="cm">// Access with dot notation</span>
+console.<span class="fn">log</span>(user.name);        <span class="cm">// "Ada Lovelace"</span>
+
+<span class="cm">// Access with bracket notation (useful for dynamic keys)</span>
+<span class="kw">const</span> key = <span class="str">"age"</span>;
+console.<span class="fn">log</span>(user[key]);        <span class="cm">// 36</span>
+
+<span class="cm">// Add or change a property</span>
+user.email = <span class="str">"ada@example.com"</span>;
+console.<span class="fn">log</span>(user.email);</pre>
+  </div>
+
+  <p><strong>Destructuring</strong> is a shortcut to pull properties out of an object into variables:</p>
+
+  <div class="cb green">
+<pre><span class="kw">const</span> product = { id: <span class="num">42</span>, name: <span class="str">"Keyboard"</span>, price: <span class="num">89.99</span> };
+
+<span class="cm">// Without destructuring</span>
+<span class="kw">const</span> name1  = product.name;
+<span class="kw">const</span> price1 = product.price;
+
+<span class="cm">// With destructuring — same result, shorter</span>
+<span class="kw">const</span> { name: productName, price } = product;
+console.<span class="fn">log</span>(<span class="str">`${productName} costs $${price}`</span>);</pre>
+  </div>
+
+  <p>Objects can also contain <strong>methods</strong> — functions that live inside the object:</p>
+
+  <div class="cb green">
+<pre><span class="kw">const</span> counter = {
+  count: <span class="num">0</span>,
+  <span class="fn">increment</span>() { <span class="kw">this</span>.count++; },
+  <span class="fn">reset</span>()     { <span class="kw">this</span>.count = <span class="num">0</span>; },
+};
+
+counter.<span class="fn">increment</span>();
+counter.<span class="fn">increment</span>();
+console.<span class="fn">log</span>(counter.count);  <span class="cm">// 2</span>
+counter.<span class="fn">reset</span>();
+console.<span class="fn">log</span>(counter.count);  <span class="cm">// 0</span></pre>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">const book = {
+  title: "The Pragmatic Programmer",
+  author: "Hunt & Thomas",
+  pages: 352,
+  summary() {
+    return `"${this.title}" by ${this.author} (${this.pages}p)`;
+  }
+};
+
+console.log(book.summary());</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── 9. Errors ─────────────────────────────────────────── -->
+<section class="topic" id="errors">
+  <div class="topic-header">
+    <span class="topic-tag tag-err">Errors</span>
+    <h2>Errors — when things go wrong</h2>
+  </div>
+
+  <p>Errors are not failures — they're information. JavaScript will throw an error when it can't do what you asked, and it will tell you exactly where and why. Use <code>try/catch</code> to handle errors gracefully instead of letting them crash your program.</p>
+
+  <div class="cb red">
+<pre><span class="kw">function</span> <span class="fn">divide</span>(a, b) {
+  <span class="kw">if</span> (b === <span class="num">0</span>) {
+    <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Cannot divide by zero"</span>);
+  }
+  <span class="kw">return</span> a / b;
+}
+
+<span class="kw">try</span> {
+  console.<span class="fn">log</span>(<span class="fn">divide</span>(<span class="num">10</span>, <span class="num">2</span>));   <span class="cm">// 5 — works fine</span>
+  console.<span class="fn">log</span>(<span class="fn">divide</span>(<span class="num">10</span>, <span class="num">0</span>));   <span class="cm">// throws!</span>
+} <span class="kw">catch</span> (error) {
+  console.<span class="fn">log</span>(<span class="str">"Caught an error:"</span>, error.message);
+} <span class="kw">finally</span> {
+  console.<span class="fn">log</span>(<span class="str">"This always runs."</span>);
+}</pre>
+  </div>
+
+  <p>The three most common errors you'll see as a beginner:</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr><th>Error</th><th>What it means</th><th>Common cause</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>ReferenceError</code></td><td>Variable doesn't exist</td><td>Typo in variable name, or used before <code>const</code>/<code>let</code></td></tr>
+      <tr><td><code>TypeError</code></td><td>Wrong type for the operation</td><td>Calling a non-function, accessing property on <code>null</code></td></tr>
+      <tr><td><code>SyntaxError</code></td><td>Code can't be parsed</td><td>Missing bracket, comma, or quote</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip">
+    <span class="box-icon">💡</span>
+    <p><strong>Read error messages carefully.</strong> They contain the error type, a description, and the exact file and line number. Starting from the line number is almost always faster than re-reading all your code top to bottom.</p>
+  </div>
+
+  <div class="mini-repl">
+    <div class="mini-repl-bar">
+      <span class="mini-repl-label">try it — intentionally trigger and catch an error</span>
+      <button class="mini-run" onclick="runMini(this)">▶ Run</button>
+    </div>
+    <textarea class="mini-editor" spellcheck="false">function parseAge(input) {
+  const n = Number(input);
+  if (isNaN(n)) throw new Error(`"${input}" is not a valid age`);
+  if (n < 0 || n > 150) throw new Error(`Age ${n} is out of range`);
+  return n;
+}
+
+const inputs = ["25", "abc", "-5", "30"];
+inputs.forEach(v => {
+  try {
+    console.log(`Parsed: ${parseAge(v)}`);
+  } catch (e) {
+    console.log(`Error: ${e.message}`);
+  }
+});</textarea>
+    <div class="mini-out">…</div>
+  </div>
+</section>
+
+<!-- ─── Finale ────────────────────────────────────────────── -->
+<div class="finale">
+  <h2>// fundamentals complete</h2>
+  <p>You now have the full vocabulary of the language — variables, types, operators, conditionals, loops, functions, arrays, objects, and errors. Everything else in JavaScript is built from these pieces.</p>
+  <div class="next-links">
+    <a class="next-link" href="#">Part 03 — DOM & Browser JS</a>
+    <a class="next-link" href="#">Part 04 — Async & Fetch</a>
+    <a class="next-link" href="https://javascript.info" target="_blank">javascript.info ↗</a>
+  </div>
+</div>
+
+</div>
+</main>
+
+<script>
+  /* ─── Safe console.log capture ─── */
+  function captureOutput(code) {
+    const lines = [];
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    const fmt = (...args) =>
+      args.map(a => {
+        if (a === null)      return 'null';
+        if (a === undefined) return 'undefined';
+        if (typeof a === 'object') {
+          try { return JSON.stringify(a, null, 2); } catch { return String(a); }
+        }
+        return String(a);
+      }).join(' ');
+
+    console.log   = (...a) => lines.push({ type: 'log',   text: fmt(...a) });
+    console.error = (...a) => lines.push({ type: 'error', text: fmt(...a) });
+    console.warn  = (...a) => lines.push({ type: 'warn',  text: fmt(...a) });
+
+    try {
+      // eslint-disable-next-line no-new-func
+      new Function(code)();
+    } catch (e) {
+      lines.push({ type: 'error', text: e.toString() });
+    }
+
+    console.log   = originalLog;
+    console.error = originalError;
+    console.warn  = originalWarn;
+    return lines;
+  }
+
+  function renderLines(lines, el) {
+    if (lines.length === 0) {
+      el.innerHTML = '<span style="color:var(--muted)">(no output)</span>';
+      return;
+    }
+    el.innerHTML = lines.map(l => {
+      const cls = l.type === 'error' ? 'out-error' : '';
+      return `<span class="out-line ${cls}">${escHtml(l.text)}</span>`;
+    }).join('\n');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ─── Hero REPL ─── */
+  function runHeroRepl() {
+    const code = document.getElementById('hero-editor').value;
+    const lines = captureOutput(code);
+    renderLines(lines, document.getElementById('hero-output'));
+  }
+
+  /* Run hero on load so it's not blank */
+  window.addEventListener('DOMContentLoaded', runHeroRepl);
+
+  /* ─── Mini REPLs ─── */
+  function runMini(btn) {
+    const bar    = btn.closest('.mini-repl-bar');
+    const repl   = bar.closest('.mini-repl');
+    const editor = repl.querySelector('.mini-editor');
+    const out    = repl.querySelector('.mini-out');
+    const lines  = captureOutput(editor.value);
+    renderLines(lines, out);
+  }
+
+  /* Allow Shift+Enter to run in any editor */
+  document.addEventListener('keydown', e => {
+    if (e.shiftKey && e.key === 'Enter' && e.target.classList.contains('mini-editor')) {
+      e.preventDefault();
+      const repl = e.target.closest('.mini-repl');
+      repl.querySelector('.mini-run').click();
+    }
+    if (e.shiftKey && e.key === 'Enter' && e.target.classList.contains('repl-editor')) {
+      e.preventDefault();
+      runHeroRepl();
+    }
+  });
+</script>
+
+</body>
+</html>

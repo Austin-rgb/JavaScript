@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JS Dev Setup · Windows Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Tokens ─────────────────────────────────────────── */
+    :root {
+      --bg:        #0d0f12;
+      --surface:   #141720;
+      --border:    #1e2330;
+      --accent:    #4fffb0;   /* terminal green */
+      --accent2:   #3b82f6;  /* electric blue */
+      --warn:      #facc15;
+      --text:      #d4dae8;
+      --muted:     #5a6378;
+      --heading:   #f0f4ff;
+
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+
+      --radius: 6px;
+    }
+
+    /* ─── Reset & Base ───────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── Layout ─────────────────────────────────────────── */
+    .wrap { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── Hero ───────────────────────────────────────────── */
+    .hero {
+      border-bottom: 1px solid var(--border);
+      padding: 72px 0 56px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: -120px;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(78,255,176,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      font-family: var(--mono);
+      font-size: clamp(26px, 5vw, 42px);
+      font-weight: 600;
+      color: var(--heading);
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 span { color: var(--accent); }
+
+    .hero-sub {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 560px;
+    }
+
+    /* ─── Progress bar ───────────────────────────────────── */
+    .progress-bar {
+      display: flex;
+      gap: 6px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+
+    .progress-bar a {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .05em;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 12px;
+      transition: border-color .2s, color .2s;
+    }
+
+    .progress-bar a:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* ─── Main content ───────────────────────────────────── */
+    main { padding: 56px 0 80px; }
+
+    /* ─── Section ────────────────────────────────────────── */
+    .section {
+      margin-bottom: 64px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .step-badge {
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--accent);
+      border-radius: 4px;
+      padding: 3px 9px;
+      letter-spacing: .06em;
+    }
+
+    .section-header h2 {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--heading);
+    }
+
+    .section p { margin-bottom: 16px; color: var(--text); }
+
+    /* ─── Card ───────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 18px;
+    }
+
+    .card-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--heading);
+      margin-bottom: 8px;
+    }
+
+    .card p { margin-bottom: 0; font-size: 14px; color: var(--muted); }
+
+    /* ─── Code block ─────────────────────────────────────── */
+    .code-block {
+      background: #090b0e;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      white-space: pre;
+      margin: 0;
+    }
+
+    .code-block .comment { color: var(--muted); }
+    .code-block .keyword { color: var(--accent2); }
+
+    /* ─── Inline code ────────────────────────────────────── */
+    code {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--accent);
+      background: rgba(78,255,176,.07);
+      border-radius: 3px;
+      padding: 1px 6px;
+    }
+
+    /* ─── Steps list ─────────────────────────────────────── */
+    .steps { list-style: none; counter-reset: steps; }
+
+    .steps li {
+      counter-increment: steps;
+      position: relative;
+      padding: 14px 16px 14px 48px;
+      margin-bottom: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+    }
+
+    .steps li::before {
+      content: counter(steps);
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(78,255,176,.1);
+      border-radius: 3px;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .steps li strong { color: var(--heading); }
+
+    /* ─── Tip / Warning ──────────────────────────────────── */
+    .tip, .warn-box {
+      display: flex;
+      gap: 12px;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin: 18px 0;
+      font-size: 14px;
+    }
+
+    .tip {
+      background: rgba(78,255,176,.05);
+      border: 1px solid rgba(78,255,176,.2);
+    }
+
+    .warn-box {
+      background: rgba(250,204,21,.05);
+      border: 1px solid rgba(250,204,21,.2);
+      color: var(--warn);
+    }
+
+    .tip-icon, .warn-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .tip p, .warn-box p { margin: 0; color: inherit; }
+    .tip p { color: var(--text); }
+
+    /* ─── Tool cards grid ────────────────────────────────── */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      transition: border-color .2s;
+    }
+
+    .tool-card:hover { border-color: var(--accent2); }
+
+    .tool-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--heading);
+      margin-bottom: 6px;
+    }
+
+    .tool-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ─── Final section ──────────────────────────────────── */
+    .finale {
+      border-top: 1px solid var(--border);
+      padding-top: 48px;
+      text-align: center;
+    }
+
+    .finale h2 {
+      font-family: var(--mono);
+      font-size: 22px;
+      color: var(--heading);
+      margin-bottom: 12px;
+    }
+
+    .finale p { color: var(--muted); max-width: 480px; margin: 0 auto; }
+
+    /* ─── Responsive ─────────────────────────────────────── */
+    @media (max-width: 560px) {
+      .hero { padding: 48px 0 40px; }
+      .section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">// absolute beginner · windows</div>
+    <h1>Set up your<br><span>JavaScript</span> dev environment</h1>
+    <p class="hero-sub">From a blank Windows machine to writing and running your first JavaScript program — no prior experience needed.</p>
+    <nav class="progress-bar" aria-label="Sections">
+      <a href="#s1">01 · Node.js</a>
+      <a href="#s2">02 · VS Code</a>
+      <a href="#s3">03 · Terminal</a>
+      <a href="#s4">04 · First program</a>
+      <a href="#s5">05 · npm basics</a>
+      <a href="#s6">06 · Git</a>
+      <a href="#s7">07 · Next steps</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- ─── 01 Node.js ──────────────────────────────────── -->
+    <section class="section" id="s1">
+      <div class="section-header">
+        <span class="step-badge">01</span>
+        <h2>Install Node.js</h2>
+      </div>
+
+      <p>JavaScript originally ran only inside browsers. <strong>Node.js</strong> lets it run directly on your computer — which means you can write programs, build servers, and use thousands of tools that the JS ecosystem provides.</p>
+
+      <ol class="steps">
+        <li><strong>Go to</strong> <a href="https://nodejs.org" target="_blank">nodejs.org</a> and click the button labelled <strong>LTS</strong> (Long-Term Support). This is the stable version — use it unless a tutorial tells you otherwise.</li>
+        <li><strong>Run the installer</strong> you downloaded. Keep all defaults and click <em>Next</em> through every screen. Make sure <em>"Add to PATH"</em> is ticked.</li>
+        <li><strong>Restart your computer</strong> after the installer finishes.</li>
+        <li><strong>Verify it worked.</strong> Open <strong>Command Prompt</strong> (<code>Win + R</code>, type <code>cmd</code>, press Enter) and run:</li>
+      </ol>
+
+      <div class="code-block"><pre>node --version
+npm --version</pre></div>
+
+      <p>You should see version numbers like <code>v20.x.x</code> and <code>10.x.x</code>. If you do, Node.js is ready.</p>
+
+      <div class="tip">
+        <span class="tip-icon">💡</span>
+        <p><strong>What is npm?</strong> It stands for <em>Node Package Manager</em>. It installs automatically with Node and lets you add ready-made code libraries to your projects. You'll use it in Step 5.</p>
+      </div>
+    </section>
+
+    <!-- ─── 02 VS Code ──────────────────────────────────── -->
+    <section class="section" id="s2">
+      <div class="section-header">
+        <span class="step-badge">02</span>
+        <h2>Install VS Code</h2>
+      </div>
+
+      <p>A code editor is where you write your programs. <strong>Visual Studio Code</strong> (VS Code) is free, beginner-friendly, and the most popular choice for JavaScript development.</p>
+
+      <ol class="steps">
+        <li>Download VS Code from <a href="https://code.visualstudio.com" target="_blank">code.visualstudio.com</a>. Choose the <strong>Windows</strong> installer.</li>
+        <li>Run the installer. On the <em>"Select Additional Tasks"</em> screen, tick <strong>"Add to PATH"</strong> and <strong>"Open with Code"</strong> for both file and folder options.</li>
+        <li>Launch VS Code after installation.</li>
+      </ol>
+
+      <p><strong>Recommended extensions</strong> — install these by clicking the puzzle-piece icon in the left sidebar:</p>
+
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-name">Prettier</div>
+          <div class="tool-desc">Automatically formats your code to look clean every time you save.</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">ESLint</div>
+          <div class="tool-desc">Underlines mistakes in your code before you even run it.</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">GitLens</div>
+          <div class="tool-desc">Shows who changed what in your files when you start using Git.</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">Error Lens</div>
+          <div class="tool-desc">Shows error messages right on the line they occur — no hunting around.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 03 Terminal ─────────────────────────────────── -->
+    <section class="section" id="s3">
+      <div class="section-header">
+        <span class="step-badge">03</span>
+        <h2>Get comfortable with the terminal</h2>
+      </div>
+
+      <p>The <strong>terminal</strong> (also called the command line) is a text-based way to control your computer. As a developer, you'll use it to run your programs, install packages, and manage your projects.</p>
+
+      <p>VS Code has a built-in terminal. Open it with <code>Ctrl + `</code> (the backtick key, below Escape). It opens at the bottom of the window.</p>
+
+      <p>The five commands you'll use most often:</p>
+
+      <div class="code-block"><pre><span class="comment"># Show what folder you're currently in</span>
+pwd
+
+<span class="comment"># List files in the current folder</span>
+ls
+
+<span class="comment"># Move into a folder called "my-project"</span>
+cd my-project
+
+<span class="comment"># Move up one folder level</span>
+cd ..
+
+<span class="comment"># Create a new folder called "my-project"</span>
+mkdir my-project</pre></div>
+
+      <div class="warn-box">
+        <span class="warn-icon">⚠</span>
+        <p>VS Code's default terminal on Windows is <strong>PowerShell</strong>. It works fine. If a tutorial shows slightly different commands, they may be writing for Mac/Linux (bash). The commands above work in both.</p>
+      </div>
+    </section>
+
+    <!-- ─── 04 First program ────────────────────────────── -->
+    <section class="section" id="s4">
+      <div class="section-header">
+        <span class="step-badge">04</span>
+        <h2>Write and run your first program</h2>
+      </div>
+
+      <p>Let's make sure everything works end-to-end.</p>
+
+      <ol class="steps">
+        <li><strong>Create a project folder.</strong> In your terminal, run:
+          <div class="code-block"><pre>mkdir my-first-app
+cd my-first-app</pre></div>
+        </li>
+        <li><strong>Open it in VS Code:</strong>
+          <div class="code-block"><pre>code .</pre></div>
+          The <code>.</code> means "open the current folder". VS Code will open with your new folder loaded.
+        </li>
+        <li><strong>Create a new file.</strong> In VS Code, press <code>Ctrl + N</code>, then <code>Ctrl + S</code> and save it as <code>index.js</code>.</li>
+        <li><strong>Type this code</strong> into the file:
+          <div class="code-block"><pre><span class="keyword">const</span> name = <span class="comment">"World"</span>;
+console.log(<span class="comment">`Hello, ${name}!`</span>);
+
+<span class="keyword">for</span> (<span class="keyword">let</span> i = 1; i <= 5; i++) {
+  console.log(<span class="comment">`  Number: ${i}`</span>);
+}</pre></div>
+        </li>
+        <li><strong>Run it</strong> in the VS Code terminal:
+          <div class="code-block"><pre>node index.js</pre></div>
+          You should see <code>Hello, World!</code> followed by numbers 1 through 5 printed in the terminal. 🎉
+        </li>
+      </ol>
+
+      <div class="tip">
+        <span class="tip-icon">💡</span>
+        <p><code>console.log()</code> is your best friend when learning. It prints any value to the terminal so you can see what your program is doing at any point.</p>
+      </div>
+    </section>
+
+    <!-- ─── 05 npm basics ───────────────────────────────── -->
+    <section class="section" id="s5">
+      <div class="section-header">
+        <span class="step-badge">05</span>
+        <h2>npm basics — using packages</h2>
+      </div>
+
+      <p>npm gives you access to over a million packages — reusable chunks of code that other developers have shared. Instead of writing everything yourself, you install a package and use what it provides.</p>
+
+      <p><strong>Start every project by initialising it:</strong></p>
+
+      <div class="code-block"><pre><span class="comment"># Run this once inside your project folder</span>
+npm init -y</pre></div>
+
+      <p>This creates a <code>package.json</code> file — a record of your project's name, version, and every package it depends on.</p>
+
+      <p><strong>Installing a package</strong> — for example, <code>chalk</code>, which adds colour to terminal output:</p>
+
+      <div class="code-block"><pre>npm install chalk</pre></div>
+
+      <p>This downloads the package into a <code>node_modules</code> folder and records it in <code>package.json</code>.</p>
+
+      <div class="card">
+        <div class="card-title">The node_modules folder</div>
+        <p>This folder can get large and is automatically regenerated — never manually edit it, and never commit it to Git. When you share your project, others run <code>npm install</code> to recreate it from your <code>package.json</code>.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">package-lock.json</div>
+        <p>Created automatically alongside <code>package.json</code>. It locks the exact versions of every package. You should commit this file to Git so your project builds identically for everyone.</p>
+      </div>
+    </section>
+
+    <!-- ─── 06 Git ───────────────────────────────────────── -->
+    <section class="section" id="s6">
+      <div class="section-header">
+        <span class="step-badge">06</span>
+        <h2>Install Git — save your work history</h2>
+      </div>
+
+      <p><strong>Git</strong> is version control: it tracks every change you make to your code, lets you undo mistakes, and makes it possible to collaborate with other developers.</p>
+
+      <ol class="steps">
+        <li>Download Git from <a href="https://git-scm.com" target="_blank">git-scm.com</a> and run the installer. Accept all defaults.</li>
+        <li>Tell Git your name and email (used to label your changes):
+          <div class="code-block"><pre>git config --global user.name "Your Name"
+git config --global user.email "you@example.com"</pre></div>
+        </li>
+        <li>Initialise a Git repository inside your project:
+          <div class="code-block"><pre>git init</pre></div>
+        </li>
+        <li>Create a <code>.gitignore</code> file in your project root and add this line to it:
+          <div class="code-block"><pre>node_modules/</pre></div>
+          This tells Git to ignore the <code>node_modules</code> folder.
+        </li>
+        <li>Make your first commit:
+          <div class="code-block"><pre><span class="comment"># Stage all files</span>
+git add .
+
+<span class="comment"># Save a snapshot with a message</span>
+git commit -m "Initial commit"</pre></div>
+        </li>
+      </ol>
+
+      <div class="tip">
+        <span class="tip-icon">💡</span>
+        <p>Think of a <strong>commit</strong> as a save point in a game. You can always travel back to any previous commit. Make commits often, whenever you finish a small piece of working code.</p>
+      </div>
+    </section>
+
+    <!-- ─── 07 Next steps ───────────────────────────────── -->
+    <section class="section" id="s7">
+      <div class="section-header">
+        <span class="step-badge">07</span>
+        <h2>What to learn next</h2>
+      </div>
+
+      <p>Your environment is ready. Here's a clear path forward:</p>
+
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-name">JavaScript fundamentals</div>
+          <div class="tool-desc">Variables, functions, arrays, objects, loops. Start with <a href="https://javascript.info">javascript.info</a> — it's free and thorough.</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">Browser DevTools</div>
+          <div class="tool-desc">Press F12 in Chrome or Edge. The Console tab lets you run JS live in the browser.</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">GitHub</div>
+          <div class="tool-desc">A home for your Git repositories online. Create a free account and push your projects there.</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">A first project</div>
+          <div class="tool-desc">Build a simple to-do list app or a number guessing game. Struggle through it — that's where learning happens.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Summary ─────────────────────────────────────── -->
+    <div class="finale">
+      <h2>// you're set up</h2>
+      <p>Node.js · VS Code · npm · Git — that's the complete foundation. Everything else you'll learn builds on top of this stack.</p>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>
